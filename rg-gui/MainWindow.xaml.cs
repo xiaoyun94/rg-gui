@@ -103,11 +103,22 @@ namespace rg_gui
         public RangeObservableCollection<FileSearchResult> FileResultItems { get; } = new();
         public RangeObservableCollection<ResultLine> ResultLineItems { get; } = new();
 
+        private static Configuration GetAppConfig()
+        {
+            string customConfigPath = Environment.GetEnvironmentVariable("RGGUI_CONFIG");
+    
+            if (!string.IsNullOrWhiteSpace(customConfigPath) && File.Exists(customConfigPath))
+            {
+                return ConfigurationManager.OpenExeConfiguration(customConfigPath);
+            }
+    
+            return ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+        }
         public MainWindow(string? basePath, string? includeFiles, string? excludeFiles, string? containingText)
         {
             InitializeComponent();
 
-            var config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+            var config = GetAppConfig();
             Left = double.TryParse(config.AppSettings.Settings["MainWindowLeft"]?.Value, out var left) ? left : DEFAULT_MAINWINDOW_LEFT;
             Top = double.TryParse(config.AppSettings.Settings["MainWindowTop"]?.Value, out var top) ? top : DEFAULT_MAINWINDOW_TOP;
             Width = double.TryParse(config.AppSettings.Settings["MainWindowWidth"]?.Value, out var width) ? width : DEFAULT_MAINWINDOW_WIDTH;
@@ -201,7 +212,7 @@ namespace rg_gui
 
         private void OnClosing(object? sender, EventArgs e)
         {
-            var config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+            var config = GetAppConfig();
             if (WindowState != WindowState.Minimized)
             {
                 SetConfigValue(config, "MainWindowLeft", Left.ToString());
